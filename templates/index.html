@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Nano Banana 이미지 생성기</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header h1 img {
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon input {
+            padding-right: 45px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #6b7280;
+            transition: color 0.2s ease;
+            padding: 4px;
+        }
+
+        .toggle-password:hover {
+            color: #475569;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #475569;
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .sample-prompts {
+            margin-top: 15px;
+        }
+
+        .sample-prompts h4 {
+            margin-bottom: 10px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .prompt-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .prompt-tag {
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .prompt-tag:hover {
+            background: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(71, 85, 105, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #475569;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .gallery {
+            margin-top: 40px;
+        }
+
+        .gallery h2 {
+            margin-bottom: 20px;
+            color: #374151;
+            font-size: 1.8rem;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .image-info {
+            padding: 15px;
+            position: relative;
+        }
+
+        .image-filename {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .image-details {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 40px;
+            padding-right: 80px;
+        }
+
+        .delete-btn {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .delete-btn:hover {
+            background: #334155;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .empty-gallery {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-gallery i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1200px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #fbbf24;
+        }
+
+        .modal-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-filename {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 16px;
+            line-height: 1.4;
+            max-width: 600px;
+            word-wrap: break-word;
+        }
+
+        .modal-details {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .image-card img {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .image-card img:hover {
+            transform: scale(1.02);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .input-section {
+                padding: 20px;
+            }
+
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><img src="/static/bananas.svg" alt="Banana"
+                    style="width: 40px; height: 40px; margin-right: 10px; vertical-align: middle;"> Gemini Nano Banana
+                이미지 생성기</h1>
+            <p>API Key 발급: <a href="https://aistudio.google.com/apikey" target="_blank"
+                    style="color: #fbbf24; text-decoration: underline;">https://aistudio.google.com/apikey</a></p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <form id="generateForm">
+                    <div class="form-group">
+                        <label for="apiKey">Gemini API 키</label>
+                        <div class="input-with-icon">
+                            <input type="password" id="apiKey" placeholder="API 키를 입력하세요" required>
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prompt">이미지 프롬프트</label>
+                        <textarea id="prompt" placeholder="생성하고 싶은 이미지를 설명해주세요..." required></textarea>
+
+                        <div class="sample-prompts">
+                            <h4>샘플 프롬프트 (클릭하여 사용)</h4>
+                            <div class="prompt-tags">
+                                {% for sample in sample_prompts %}
+                                <button type="button" class="prompt-tag" onclick="setPrompt('{{ sample }}')">
+                                    {{ sample[:50] }}{% if sample|length > 50 %}...{% endif %}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="generate-btn" id="generateBtn">
+                        <i class="fas fa-magic"></i> 이미지 생성하기
+                    </button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>AI가 이미지를 생성하고 있습니다...</p>
+                </div>
+
+                <div id="alertContainer"></div>
+            </div>
+
+            <div class="gallery">
+                <h2>생성된 이미지들</h2>
+                <div id="imageGrid" class="image-grid">
+                    <div class="empty-gallery">
+                        <i class="fas fa-images"></i>
+                        <p>아직 생성된 이미지가 없습니다.<br>위에서 프롬프트를 입력하여 첫 번째 이미지를 만들어보세요!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let isGenerating = false;
+
+        // DOM 요소들
+        const generateForm = document.getElementById('generateForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const alertContainer = document.getElementById('alertContainer');
+        const imageGrid = document.getElementById('imageGrid');
+        const apiKeyInput = document.getElementById('apiKey');
+
+        // 페이지 로드 시 이미지 목록 불러오기 및 API 키 로드
+        document.addEventListener('DOMContentLoaded', function () {
+            loadApiKey();
+            loadImages();
+        });
+
+        // API 키 로드 함수 (개발용)
+        async function loadApiKey() {
+            try {
+                const response = await fetch('/get-api-key');
+                const result = await response.json();
+                if (result.success) {
+                    apiKeyInput.value = result.api_key;
+                }
+            } catch (error) {
+                console.log('API 키 자동 로드 실패 (수동 입력 필요):', error);
+            }
+        }
+
+        // 패스워드 표시/숨김 토글
+        function togglePasswordVisibility() {
+            const toggleBtn = document.querySelector('.toggle-password i');
+
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                toggleBtn.className = 'fas fa-eye-slash';
+            } else {
+                apiKeyInput.type = 'password';
+                toggleBtn.className = 'fas fa-eye';
+            }
+        }
+
+        // 프롬프트 설정 함수
+        function setPrompt(prompt) {
+            document.getElementById('prompt').value = prompt;
+        }
+
+        // 알림 표시 함수
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // 이미지 생성 폼 제출
+        generateForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (isGenerating) return;
+
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const prompt = document.getElementById('prompt').value.trim();
+
+            if (!apiKey || !prompt) {
+                showAlert('API 키와 프롬프트를 모두 입력해주세요.', 'error');
+                return;
+            }
+
+            isGenerating = true;
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 생성 중...';
+            loading.style.display = 'block';
+            alertContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        api_key: apiKey
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(`이미지가 성공적으로 생성되었습니다! (${result.filename})`, 'success');
+                    loadImages(); // 이미지 목록 새로고침
+                } else {
+                    showAlert(`오류: ${result.error}`, 'error');
+                }
+
+            } catch (error) {
+                showAlert(`네트워크 오류: ${error.message}`, 'error');
+            } finally {
+                isGenerating = false;
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-magic"></i> 이미지 생성하기';
+                loading.style.display = 'none';
+            }
+        });
+
+        // 이미지 목록 불러오기
+        async function loadImages() {
+            try {
+                const response = await fetch('/images');
+                const result = await response.json();
+
+                if (result.success) {
+                    displayImages(result.images);
+                } else {
+                    console.error('이미지 목록 로드 실패:', result.error);
+                }
+            } catch (error) {
+                console.error('이미지 목록 로드 오류:', error);
+            }
+        }
+
+        // 이미지 표시
+        function displayImages(images) {
+            if (images.length === 0) {
+                imageGrid.innerHTML = `
+                    <div class="empty-gallery">
+                        <i class="fas fa-images"></i>
+                        <p>아직 생성된 이미지가 없습니다.<br>위에서 프롬프트를 입력하여 첫 번째 이미지를 만들어보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            imageGrid.innerHTML = images.map(image => `
+                <div class="image-card">
+                    <img src="${image.path}" alt="${image.filename}" loading="lazy" onclick="openModal('${image.path}', '${image.prompt || image.filename}', '${image.width} × ${image.height} px | ${formatFileSize(image.size)}', '${formatDate(image.created)}')">
+                    <div class="image-info">
+                        <div class="image-filename">${image.filename}</div>
+                        <div class="image-details">
+                            ${image.width} × ${image.height} px | ${formatFileSize(image.size)}
+                            <br>생성일: ${formatDate(image.created)}
+                        </div>
+                        <button class="delete-btn" onclick="deleteImage('${image.filename}')">
+                            <i class="fas fa-trash"></i> 삭제
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 이미지 삭제
+        async function deleteImage(filename) {
+            if (!confirm(`'${filename}' 이미지를 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/delete/${filename}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    loadImages(); // 이미지 목록 새로고침
+                } else {
+                    showAlert(`삭제 실패: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`삭제 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 파일 크기 포맷팅
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 날짜 포맷팅
+        function formatDate(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString('ko-KR');
+        }
+
+        // 모달 열기
+        function openModal(imagePath, promptOrFilename, details, createdDate) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalFilename = document.getElementById('modalFilename');
+            const modalDetails = document.getElementById('modalDetails');
+
+            modalImage.src = imagePath;
+            modalImage.alt = promptOrFilename;
+            modalFilename.textContent = promptOrFilename;
+            modalDetails.innerHTML = `${details}<br>생성일: ${createdDate}`;
+
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // 스크롤 복원
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function (event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+
+    <!-- 이미지 모달 -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="">
+            <div id="modalInfo" class="modal-info">
+                <div id="modalFilename" class="modal-filename"></div>
+                <div id="modalDetails" class="modal-details"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
